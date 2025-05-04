@@ -192,7 +192,7 @@ const UpdateCampaign = () => {
         <div className="flex flex-wrap gap-[40px]">
           <FormField
             labelName="Your Name *"
-            placeholder="John Doe"
+            placeholder="Owner Name"
             inputType="text"
             value={form.name}
             handleChange={(e) => handleFormFieldChange("name", e)}
@@ -265,15 +265,7 @@ const UpdateCampaign = () => {
           />
         </div>
 
-        {/* <FormField
-          labelName="Campaign image *"
-          placeholder="Place image URL of your campaign"
-          inputType="file"
-          multiple={true}
-          // value={form.image}
-          handleChange={handleFileChange}
-        /> */}
-        {/* <button onClick={uploadImage}>upload</button> */}
+
 
         <div className="flex justify-center items-center mt-[40px]">
           <Button

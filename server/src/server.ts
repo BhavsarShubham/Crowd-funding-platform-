@@ -19,13 +19,10 @@ app.use(express.urlencoded({ extended: true }));
 
 app.post('/send-email', async (req: Request, res: Response) => {
     try {
-        // Extract subject and message from the request body
+    
         const { subject, message } = req.body;
 
-        // Create a transporter using Nodemailer with your SMTP configuration
         const transporter = nodemailer.createTransport({
-            // Add your SMTP configuration here
-            // For example, if using Gmail, you would provide your Gmail SMTP settings
             service: 'gmail',
             auth: {
                 user: process.env.EMAIL_USER,
@@ -34,7 +31,7 @@ app.post('/send-email', async (req: Request, res: Response) => {
             },
         });
 
-        // Configure the email options
+    
         const mailOptions = {
             from: 'shubhambhavsar3311@gmail.com',
             to: 'shubhambhavsar1133@gmail.com',
@@ -42,17 +39,14 @@ app.post('/send-email', async (req: Request, res: Response) => {
             text: message,
         };
 
-        // Send the email
         const info = await transporter.sendMail(mailOptions);
 
-        // Log the message ID and response
         console.log('Message ID:', info.messageId);
         console.log('Email sent:', info.response);
 
-        // Respond with a success message
         res.status(200).send('Email sent successfully');
     } catch (error) {
-        // Handle any errors
+
         console.error('Error sending email:', error);
         res.status(500).send('Error sending email');
     }
@@ -136,45 +130,31 @@ app.get('/health', (_req: Request, res: Response) => {
     res.status(200).send('Server is running');
 });
 
-// Route to fetch a single article by its ID.
+
 app.get("/replyke-articles/:article_id", async (req: Request, res: Response) => {
     try {
-        // Extract article_id from the path parameters.
+
         const { article_id } = req.params;
+        const article = await Article.findOne({ article_id: article_id}).lean<IArticle>();
 
-        // Search for the article using Mongoose's findOne method.
-        const article: IArticle | null = await Article.findOne({
-            article_id,
-        }).lean();
-
-        // If no article is found, return a 404 (Not Found) status.
         if (!article) return res.status(404).send();
-
-        // If an article is found, return it with a 200 (OK) status.
         return res.status(200).send(article);
 
     } catch (err: any) {
-        // In case of any server errors, return a 500 (Internal Server Error) status.
         return res.status(500).send({ error: "Server error" });
     }
 });
 
-// Route to like an article.
 app.post("/replyke-articles/like", async (req: Request, res: Response) => {
     try {
         const { article_id, user_id } = req.body;
-
-        // Validate the presence of article_id and user_id.
         if (!article_id || !user_id) {
             return res
                 .status(400)
                 .send("Missing article_id or user_id in request body");
         }
+        const article = await Article.findOne({ article_id:article_id }).lean<IArticle>();
 
-        // First we want to fetch the article
-        const article: IArticle | null = await Article.findOne({
-            article_id,
-        }).lean();
 
         let newArticle;
 
@@ -205,11 +185,11 @@ app.post("/replyke-articles/like", async (req: Request, res: Response) => {
             await newArticle.save();
         }
 
-        // Return the updated or newly created article.
+
         return res.status(200).send(newArticle);
 
     } catch (err: any) {
-        // Handle server errors.
+    
         return res.status(500).send({ error: "Server error" });
     }
 });
@@ -227,9 +207,7 @@ app.post("/replyke-articles/unlike", async (req: Request, res: Response) => {
         }
 
         // Fetch the article to check if the user has already liked it.
-        const article: IArticle | null = await Article.findOne({
-            article_id,
-        }).lean();
+        const article = await Article.findOne({ article_id:article_id }).lean<IArticle>();
 
         // If the article does not exist or the user hasn't liked it.
         if (!article || !article.likes.includes(user_id)) {
@@ -252,7 +230,6 @@ app.post("/replyke-articles/unlike", async (req: Request, res: Response) => {
         return res.status(200).send(updatedArticle);
 
     } catch (err: any) {
-        // Handle server errors.
         return res.status(500).send({ error: "Server error" });
     }
 });
@@ -309,7 +286,7 @@ app.get("/replyke-comments", async (req: Request, res: Response) => {
         return res.status(200).send(comments);
 
     } catch (err: any) {
-        // Handle any server errors.
+        
         return res.status(500).send({ error: "Server error" });
     }
 });
@@ -344,9 +321,7 @@ app.post("/replyke-comments", async (req: Request, res: Response) => {
         }
 
         // Fetch the article to update its comment or reply count.
-        const article: IArticle | null = await Article.findOne({
-            article_id,
-        }).lean();
+        const article = await Article.findOne({ article_id:article_id }).lean<IArticle>();
 
         if (article) {
             // Increment either the direct comments count or the replies count in the article.
@@ -369,7 +344,7 @@ app.post("/replyke-comments", async (req: Request, res: Response) => {
         // Return the newly created comment or reply.
         return res.status(200).send(comment);
     } catch (err: any) {
-        // Handle any server errors.
+
         return res.status(500).send({ error: "Server error" });
     }
 });
@@ -385,9 +360,8 @@ app.delete("/replyke-comments", async (req: Request, res: Response) => {
         }
 
         // Retrieve the target comment to initiate the delete operation.
-        const targetComment: IComment | null = await Comment.findById(
-            comment_id
-        ).lean();
+        const targetComment = await Comment.findById(comment_id).lean<IComment>();
+
         if (!targetComment) {
             return res.status(404).send("Comment not found");
         }
@@ -399,9 +373,7 @@ app.delete("/replyke-comments", async (req: Request, res: Response) => {
         // Recursive function to delete a comment and its child comments (replies).
         async function deleteCommentAndChildren(commentId: string) {
             // We first delete the comment. If all good, we should get the comment document back.
-            const comment: IComment | null = await Comment.findByIdAndDelete(
-                commentId
-            ).lean();
+            const comment = await Comment.findById(comment_id).lean<IComment>();
 
             if (!comment) {
                 throw new Error("Comment deletion failed");
@@ -411,9 +383,8 @@ app.delete("/replyke-comments", async (req: Request, res: Response) => {
             comment.parent ? repliesDeletedCount++ : firstLevelCommentsDeletedCount++;
 
             // Delete all child comments (replies) of the current comment.
-            const childComments: IComment[] = await Comment.find({
-                parent: comment._id,
-            }).lean();
+            const childComments = await Comment.find({ parent: comment._id }).lean<IComment[]>();
+
             for (const childComment of childComments) {
                 await deleteCommentAndChildren(childComment._id);
             }
@@ -448,7 +419,7 @@ app.delete("/replyke-comments", async (req: Request, res: Response) => {
         // Return the updated article data.
         return res.status(200).send(article);
     } catch (err: any) {
-        // Handle any server errors.
+
         return res.status(500).send({ error: "Server error" });
     }
 });
@@ -478,7 +449,6 @@ app.patch("/replyke-comments", async (req: Request, res: Response) => {
         // Return the updated comment.
         return res.status(200).send(updatedComment);
     } catch (err: any) {
-        // Handle any server errors.
         return res.status(500).send({ error: "Server error" });
     }
 });
@@ -494,7 +464,8 @@ app.post("/replyke-comments/like", async (req: Request, res: Response) => {
         }
 
         // Retrieve the comment to be liked.
-        const comment: IComment | null = await Comment.findById(comment_id).lean();
+        const comment = await Comment.findById(comment_id).lean<IComment>();
+
         if (!comment) {
             return res.status(404).send("Comment not found");
         }
@@ -514,7 +485,6 @@ app.post("/replyke-comments/like", async (req: Request, res: Response) => {
         // Return the updated comment.
         return res.status(200).send(updatedComment);
     } catch (err: any) {
-        // Handle any server errors.
         return res.status(500).send({ error: "Server error" });
     }
 });
@@ -530,7 +500,8 @@ app.post("/replyke-comments/unlike", async (req: Request, res: Response) => {
         }
 
         // Retrieve the comment to be unliked.
-        const comment: IComment | null = await Comment.findById(comment_id).lean();
+        const comment = await Comment.findById(comment_id).lean<IComment>();
+
         if (!comment) {
             return res.status(404).send("Comment not found");
         }
@@ -550,7 +521,6 @@ app.post("/replyke-comments/unlike", async (req: Request, res: Response) => {
         // Return the updated comment.
         return res.status(200).send(updatedComment);
     } catch (err: any) {
-        // Handle any server errors.
         return res.status(500).send({ error: "Server error" });
     }
 });
