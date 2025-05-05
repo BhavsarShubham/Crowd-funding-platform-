@@ -1,5 +1,6 @@
 import React, { useContext, createContext } from "react";
-import { abi } from "../abis/contractAbi.json";
+// import { abi } from "../abis /ContractAbi.json";
+import {abi } from "../abis/ContractAbi.json"
 import {
   useAddress,
   useContract,
