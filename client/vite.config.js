@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [
     react(),
     nodePolyfills(),
+    
   ],
   define: {
     'process.env': {}, 
@@ -18,4 +19,6 @@ export default defineConfig({
       target: 'esnext', 
     },
   },
+  plugins: [react()],
+  base: './',
 });

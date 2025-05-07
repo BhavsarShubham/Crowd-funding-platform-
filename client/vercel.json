@@ -6,8 +6,8 @@
   "framework": "vite",
   "routes": [
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)", 
+      "destination": "/index.html" 
     }
   ]
 }
